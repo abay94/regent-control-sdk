@@ -3,7 +3,7 @@
 // issued scoped token verifies against the live JWKS.
 
 import crypto from 'node:crypto';
-import { RegentControl, ControlDenied } from '../dist/index.js';
+import { RegentControl, ControlDenied, ControlError, deriveAgentSecret } from '../dist/index.js';
 
 const BASE = 'http://127.0.0.1:8006';
 let failures = 0;
@@ -99,6 +99,34 @@ console.log('\n5) ControlDenied helper');
         : bad('ControlDenied mismatch');
     }
   }
+}
+
+// 6. auth: an invalid API key is rejected (401 -> ControlError)
+console.log('\n6) reject an invalid API key');
+{
+  const badKey = new RegentControl({ apiKey: 'rgnt_ctrl_WRONG', agentId: 'agent_hermes_001', baseUrl: BASE });
+  try {
+    await badKey.authorize({ tool: 'salesforce', action: 'contact.read' });
+    bad('expected ControlError for bad key');
+  } catch (e) {
+    e instanceof ControlError && e.statusCode === 401
+      ? ok('invalid key rejected with 401')
+      : bad(`unexpected error: ${e}`);
+  }
+}
+
+// 7. signed request (HMAC) verifies server-side
+console.log('\n7) signed request (HMAC) accepted');
+{
+  const secret = await deriveAgentSecret('rgnt_ctrl_test', 'agent_hermes_001');
+  const signed = new RegentControl({
+    apiKey: 'rgnt_ctrl_test',
+    agentId: 'agent_hermes_001',
+    baseUrl: BASE,
+    agentSecret: secret,
+  });
+  const d = await signed.authorize({ tool: 'salesforce', action: 'contact.read' });
+  d.allowed ? ok('signed request authorized') : bad(`signed request got ${d.decision}/${d.code}`);
 }
 
 console.log(`\n${failures === 0 ? '✅ ALL E2E CHECKS PASSED' : `❌ ${failures} CHECK(S) FAILED`}`);

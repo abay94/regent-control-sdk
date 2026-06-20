@@ -8,6 +8,7 @@
  * @internal
  */
 
+import { hmacSha256Hex } from './crypto.js';
 import { ControlError, ControlNetworkError } from './errors.js';
 
 export interface HttpConfig {
@@ -19,21 +20,6 @@ export interface HttpConfig {
 }
 
 const RETRYABLE = new Set([429, 500, 502, 503, 504]);
-
-async function hmacSha256Hex(secret: string, message: string): Promise<string> {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(secret),
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
 
 const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
