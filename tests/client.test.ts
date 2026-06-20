@@ -71,6 +71,33 @@ describe('authorize', () => {
     expect((init as RequestInit).headers).toMatchObject({ 'Idempotency-Key': 'idem_1' });
   });
 
+  it('translates delegation + intent + facts fields to snake_case', async () => {
+    const spy = mockFetchOnce(200, { decision: 'allow', decision_id: 'd', token: 't', expires_at: 'x', obligations: [] });
+    vi.stubGlobal('fetch', spy);
+    await control().authorize({
+      tool: 'payments',
+      action: 'refund.create',
+      context: {
+        amountUsd: 50, mandateId: 'mnd_1',
+        userToken: 'oidc-jwt', intent: 'refund duplicate charge', task: 'T-8842',
+        op: 'refund.create', resourceType: 'refund',
+        accountStatus: 'active', refundToOriginal: true,
+      },
+    });
+    const [, init] = spy.mock.calls[0]!;
+    const ctx = JSON.parse((init as RequestInit).body as string).context;
+    expect(ctx.user_token).toBe('oidc-jwt');
+    expect(ctx.intent).toBe('refund duplicate charge');
+    expect(ctx.task).toBe('T-8842');
+    expect(ctx.op).toBe('refund.create');
+    expect(ctx.resource_type).toBe('refund');
+    expect(ctx.account_status).toBe('active');
+    expect(ctx.refund_to_original).toBe(true);
+    // camelCase keys must NOT leak through alongside the snake_case ones
+    expect(ctx.userToken).toBeUndefined();
+    expect(ctx.refundToOriginal).toBeUndefined();
+  });
+
   it('throws ControlError on 401 (auth failure, not a decision)', async () => {
     vi.stubGlobal('fetch', mockFetchOnce(401, { error: 'unauthorized' }));
     await expect(control().authorize({ tool: 't', action: 'a' })).rejects.toBeInstanceOf(ControlError);

@@ -54,6 +54,14 @@ export class RegentControl {
         amount_usd: ctx.amountUsd,
         mandate_id: ctx.mandateId,
         idempotency_key: ctx.idempotencyKey,
+        user_token: ctx.userToken,
+        intent: ctx.intent,
+        reasoning_summary: ctx.reasoningSummary,
+        task: ctx.task,
+        op: ctx.op,
+        resource_type: ctx.resourceType,
+        account_status: ctx.accountStatus,
+        refund_to_original: ctx.refundToOriginal,
         ...stripKnown(ctx),
       },
     };
@@ -104,6 +112,14 @@ const KNOWN_CTX = new Set([
   'amountUsd',
   'mandateId',
   'idempotencyKey',
+  'userToken',
+  'intent',
+  'reasoningSummary',
+  'task',
+  'op',
+  'resourceType',
+  'accountStatus',
+  'refundToOriginal',
 ]);
 
 /** Pass through any extra (unknown) context keys verbatim. */

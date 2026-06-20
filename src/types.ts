@@ -20,6 +20,22 @@ export interface AuthorizeContext {
   amountUsd?: number;
   mandateId?: string;
   idempotencyKey?: string;
+  /** The human's OIDC id_token, when acting on a person's behalf. Gate-verified. */
+  userToken?: string;
+  /** One-line justification — recorded in the audit, never trusted as enforcement. */
+  intent?: string;
+  /** Optional longer "how the agent reasoned" summary, recorded alongside intent. */
+  reasoningSummary?: string;
+  /** A task/ticket reference this action belongs to. */
+  task?: string;
+  /** Semantic operation, e.g. "refund.create" / "read" / "delete". */
+  op?: string;
+  /** Resource type the operation targets, e.g. "Contact" / "refund". */
+  resourceType?: string;
+  /** Verified account state the policy keys on, e.g. "active" / "frozen". */
+  accountStatus?: string;
+  /** Whether a refund returns to the original payment method. */
+  refundToOriginal?: boolean;
   [key: string]: unknown;
 }
 
