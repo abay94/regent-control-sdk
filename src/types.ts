@@ -39,6 +39,15 @@ export interface AuthorizeContext {
   /** Whether a refund returns to the original payment method. */
   refundToOriginal?: boolean;
   [key: string]: unknown;
+  /** AP2 v0.2: ask the gate for mandate chains bound to a merchant-signed Checkout JWT (money actions). */
+  ap2?: {
+    checkout_jwt: string;
+    nonce?: string;
+    aud?: string;
+    payee?: { id: string; name: string; website?: string };
+    instrument?: { id: string; type: string; description?: string };
+    expires_at?: string;
+  };
 }
 
 export interface AuthorizeInput {
@@ -62,6 +71,22 @@ export interface Escalation {
   expiresAt?: string;
 }
 
+export interface Ap2Evidence {
+  spec: string;
+  /** Compact SD-JWT delegation chains (open~…~~closed~…). */
+  checkout_mandate: string;
+  payment_mandate: string;
+  /** base64url SHA-256 of the Checkout JWT. */
+  transaction_id: string;
+  open_checkout_hash: string;
+  checkout_reference: string;
+  payment_reference: string;
+  nonce: string;
+  aud: string;
+  provider_kid: string;
+  agent_jwk: Record<string, unknown>;
+}
+
 export interface AllowDecision {
   decision: 'allow';
   /** Convenience discriminant: true only for allow. */
@@ -72,6 +97,8 @@ export interface AllowDecision {
   expiresAt: string;
   riskScore?: number;
   obligations: Obligation[];
+  /** AP2 v0.2 evidence — present only when context.ap2.checkout_jwt was supplied. */
+  ap2?: Ap2Evidence;
 }
 
 export interface DenyDecision {
