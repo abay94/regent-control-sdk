@@ -1,7 +1,7 @@
 {
   "name": "@regent/control-sdk",
   "version": "0.1.0",
-  "description": "TypeScript SDK for Regent Control — the runtime enforcement gate for AI agents",
+  "description": "TypeScript SDK for Regent Control \u2014 the runtime enforcement gate for AI agents",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -11,15 +11,23 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "keywords": ["regent", "ai-agents", "authorization", "policy", "enforcement"],
-  "license": "UNLICENSED",
+  "keywords": [
+    "regent",
+    "ai-agents",
+    "authorization",
+    "policy",
+    "enforcement"
+  ],
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.4.0",
