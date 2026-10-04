@@ -1,4 +1,4 @@
-# @regent/control-sdk
+# @regent-protocol/control-sdk
 
 TypeScript client for **Regent Control** — runtime policy enforcement for an AI agent's
 actions. Authorize each action (**allow / deny / escalate**), get a short-lived scoped

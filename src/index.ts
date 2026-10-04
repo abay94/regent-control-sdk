@@ -1,4 +1,4 @@
-// @regent/control-sdk — public API surface
+// @regent-protocol/control-sdk — public API surface
 
 export { RegentControl } from './client.js';
 export { deriveAgentSecret } from './crypto.js';

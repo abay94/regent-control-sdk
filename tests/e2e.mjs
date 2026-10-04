@@ -1,4 +1,4 @@
-// Cross-process e2e: real @regent/control-sdk -> running api-control (:8006)
+// Cross-process e2e: real @regent-protocol/control-sdk -> running api-control (:8006)
 // -> mock upstreams. Proves the wire contract end to end, including that the
 // issued scoped token verifies against the live JWKS.
 
