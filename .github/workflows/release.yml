@@ -1,0 +1,34 @@
+name: release
+
+# Tag v* → test, build and publish to npm as @regent-protocol/control-sdk with provenance.
+# Needs the NPM_TOKEN repository secret (a granular automation token of the npm user
+# regent-protocol with publish rights on the @regent-protocol scope); the publish step
+# is skipped when the secret is absent, so the build still validates the tag.
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write  # provenance attestation
+      contents: read
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - run: npm pack --dry-run
+      - name: publish
+        if: ${{ env.NPM_TOKEN != '' }}
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

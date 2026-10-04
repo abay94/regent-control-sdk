@@ -5,7 +5,7 @@ actions. Authorize each action (**allow / deny / escalate**), get a short-lived 
 token, perform it, report the outcome.
 
 ```bash
-npm install @regent/control-sdk
+npm install @regent-protocol/control-sdk
 ```
 
 Node 18+ (uses the built-in `fetch` + Web Crypto). Zero runtime dependencies.
@@ -13,7 +13,7 @@ Node 18+ (uses the built-in `fetch` + Web Crypto). Zero runtime dependencies.
 ## Usage — gate-direct
 
 ```ts
-import { RegentControl, ControlDenied } from '@regent/control-sdk';
+import { RegentControl, ControlDenied } from '@regent-protocol/control-sdk';
 
 const control = new RegentControl({ apiKey: 'rgnt_ctrl_…', agentId: 'agent_refund_bot' });
 
