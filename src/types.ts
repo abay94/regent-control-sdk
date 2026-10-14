@@ -8,10 +8,21 @@ export type DecisionCode =
   | 'TOOL_NOT_ALLOWED'
   | 'MANDATE_NOT_FOUND'
   | 'MANDATE_LIMIT_EXCEEDED'
+  | 'MANDATE_NOT_OWNED'
+  | 'RESOURCE_OUT_OF_SCOPE'
+  | 'ASSET_CURRENCY_MISMATCH'
+  /** The purchase named a currency the registry does not know (backlog 62). */
+  | 'CURRENCY_UNKNOWN'
   | 'RISK_THRESHOLD_EXCEEDED'
   | 'VELOCITY_EXCEEDED'
   | 'DUPLICATE_REQUEST'
+  | 'IDEMPOTENCY_KEY_REUSED'
   | 'ESCALATION_REQUIRED'
+  | 'ENVIRONMENT_UNRESOLVED'
+  /** A sandbox never moves more than its per-currency ceiling per decision. */
+  | 'SANDBOX_CEILING_EXCEEDED'
+  /** A sandbox cannot pay in this currency at all. */
+  | 'SANDBOX_CEILING_UNKNOWN'
   | 'INTERNAL_ERROR';
 
 export interface AuthorizeContext {
@@ -20,6 +31,11 @@ export interface AuthorizeContext {
   ip?: string;
   chain?: string;
   amountUsd?: number;
+  /** The sum in `currency` (preferred over amountUsd). Budgets are per currency: the gate
+   *  checks it against the agent's mandate in that currency. Passed through as `amount`. */
+  amount?: number;
+  /** ISO 4217 code (or an on-chain asset); absent = USD. Passed through as `currency`. */
+  currency?: string;
   mandateId?: string;
   idempotencyKey?: string;
   /** The human's OIDC id_token, when acting on a person's behalf. Gate-verified. */
@@ -107,6 +123,9 @@ export interface DenyDecision {
   decisionId: string;
   code: DecisionCode;
   reason: string;
+  /** For MANDATE_NOT_FOUND / CURRENCY_UNKNOWN / SANDBOX_CEILING_*: the purchase currency the
+   *  refusal is about — "no budget in EUR" means ask the owner for a EUR budget. */
+  currency?: string;
 }
 
 export interface EscalateDecision {

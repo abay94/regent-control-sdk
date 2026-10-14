@@ -55,6 +55,29 @@ describe('authorize', () => {
     if (!d.allowed) expect(d.code).toBe('MANDATE_LIMIT_EXCEEDED');
   });
 
+  it('names the currency a missing budget is in (backlog 62)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      mockFetchOnce(200, {
+        decision: 'deny',
+        decision_id: 'dec_cur',
+        code: 'MANDATE_NOT_FOUND',
+        reason: "no active EUR mandate for this agent; ask the owner for a budget in EUR",
+        currency: 'eur',
+      }),
+    );
+    const d = await control().authorize({
+      tool: 'stripe',
+      action: 'charge.create',
+      context: { amount: 9, currency: 'EUR' },
+    });
+    expect(d.allowed).toBe(false);
+    if (d.decision === 'deny') {
+      expect(d.code).toBe('MANDATE_NOT_FOUND');
+      expect(d.currency).toBe('EUR');
+    }
+  });
+
   it('sends camelCase context as snake_case on the wire', async () => {
     const spy = mockFetchOnce(200, { decision: 'allow', decision_id: 'd', token: 't', expires_at: 'x', obligations: [] });
     vi.stubGlobal('fetch', spy);

@@ -95,6 +95,7 @@ interface WireDecision {
   obligations?: Array<{ type: string; fields?: string[] }>;
   code?: string;
   reason?: string;
+  currency?: string;
   escalation?: { type: 'ciba' | 'manual' | 'webhook'; approver?: string; ref: string; expires_at?: string };
 }
 
@@ -164,5 +165,6 @@ function toDecision(w: WireDecision): Decision {
     decisionId: w.decision_id,
     code: w.code as DecisionCode,
     reason: w.reason ?? '',
+    ...(w.currency ? { currency: String(w.currency).toUpperCase() } : {}),
   };
 }
