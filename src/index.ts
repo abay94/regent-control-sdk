@@ -18,3 +18,4 @@ export type {
   CompleteResult,
   CompleteStatus,
 } from './types.js';
+export { generateAgentKey, kidFor, proofOfPossession, loadOrCreateKey, readKeyFile, writeCredentials } from './agentkey.js';
