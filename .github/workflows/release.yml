@@ -26,4 +26,6 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm pack --dry-run
-      - run: npm publish --access public --provenance
+      # The trusted publisher is stage-only (npm default): the version lands under Staged
+      # Packages on npmjs.com and a maintainer approves it there with 2FA.
+      - run: npm stage publish --access public --provenance
