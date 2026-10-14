@@ -1,11 +1,8 @@
 name: release
 
-# Tag v* → test, build and publish to npm as @regent-protocol/control-sdk with provenance.
-# Authentication, in order of preference:
-#   1. npm Trusted Publishing (OIDC): on npmjs.com → package → Settings → Trusted Publisher →
-#      GitHub Actions, repository abay94/regent-control-sdk, workflow release.yml. No secret.
-#   2. The NPM_TOKEN repository secret (a granular token with publish rights on this package),
-#      used only when present.
+# Tag v* → test, build and publish to npm as @regent-protocol/control-sdk with provenance,
+# through npm Trusted Publishing (OIDC): on npmjs.com the package's Settings → Trusted
+# Publisher names this repository and this workflow file. No token anywhere.
 # npm ≥ 11.5 is needed for trusted publishing, so the CLI is upgraded first.
 
 on:
@@ -29,11 +26,4 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm pack --dry-run
-      - name: publish (trusted publishing)
-        if: ${{ secrets.NPM_TOKEN == '' }}
-        run: npm publish --access public --provenance
-      - name: publish (token)
-        if: ${{ secrets.NPM_TOKEN != '' }}
-        run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: npm publish --access public --provenance
