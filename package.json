@@ -1,6 +1,6 @@
 {
   "name": "@regent-protocol/control-sdk",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "TypeScript SDK for Regent Control \u2014 the runtime enforcement gate for AI agents",
   "keywords": [
     "regent",

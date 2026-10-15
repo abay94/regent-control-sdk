@@ -78,6 +78,17 @@ describe('authorize', () => {
     }
   });
 
+  it('sends amount, currency and the payee as the agent names them', async () => {
+    const fetchMock = mockFetchOnce(200, { decision: 'allow', decision_id: 'dec_p', token: 't', expires_at: 'x', obligations: [] });
+    vi.stubGlobal('fetch', fetchMock);
+    await control().authorize({ tool: 'agentcard_buy', action: 'POST /buy', context: { amount: 2500, currency: 'KZT', payee: 'arbuz.kz' } });
+    const body = JSON.parse((fetchMock.mock.calls[0][1] as RequestInit).body as string);
+    expect(body.context.amount).toBe(2500);
+    expect(body.context.currency).toBe('KZT');
+    expect(body.context.payee).toBe('arbuz.kz');
+    expect(body.context.payee_source).toBeUndefined();
+  });
+
   it('sends camelCase context as snake_case on the wire', async () => {
     const spy = mockFetchOnce(200, { decision: 'allow', decision_id: 'd', token: 't', expires_at: 'x', obligations: [] });
     vi.stubGlobal('fetch', spy);

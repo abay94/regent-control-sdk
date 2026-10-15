@@ -36,6 +36,10 @@ export interface AuthorizeContext {
   amount?: number;
   /** ISO 4217 code (or an on-chain asset); absent = USD. Passed through as `currency`. */
   currency?: string;
+  /** Who the money goes to, in the agent's own words (the gate labels it payee_source "agent";
+   *  a rail's word only reaches the gate through a sidecar or the gateway). Caps per seller
+   *  in the mandate are checked against it. */
+  payee?: string;
   mandateId?: string;
   idempotencyKey?: string;
   /** The human's OIDC id_token, when acting on a person's behalf. Gate-verified. */
