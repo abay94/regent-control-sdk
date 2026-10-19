@@ -125,3 +125,14 @@ describe('gateway()', () => {
     expect(d.allowed).toBe(true);
   });
 });
+
+describe('defaults', () => {
+  it('authorize() goes to the control host by default, gateway() to the gateway host', async () => {
+    const calls = capture(200, { decision: 'allow', decision_id: 'dec_1', token: 't', expires_at: '2099-01-01T00:00:00Z' });
+    const c = new RegentControl({ apiKey: 'k', agentId: 'a', maxRetries: 0 });
+    await c.authorize({ tool: 'stripe', action: 'charge.create' });
+    expect(calls[0].url).toBe('https://control-api.regentprotocol.org/v1/control/decisions');
+    await c.gateway('agentcard_shop', 'buy', { body: ASK });
+    expect(calls[1].url).toBe('https://gw.regentprotocol.org/gw/agentcard_shop/buy');
+  });
+});

@@ -163,7 +163,7 @@ export interface RegentControlConfig {
   apiKey: string;
   /** The agent this client governs. */
   agentId: string;
-  /** Decision API base URL. Default: https://api.regentprotocol.org */
+  /** Decision API base URL. Default: https://control-api.regentprotocol.org */
   baseUrl?: string;
   /** Optional per-agent HMAC secret; if set, requests are signed (X-Agent-Signature). */
   agentSecret?: string;

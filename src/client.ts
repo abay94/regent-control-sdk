@@ -15,7 +15,9 @@ import type {
   RegentControlConfig,
 } from './types.js';
 
-const DEFAULT_BASE_URL = 'https://api.regentprotocol.org';
+// The Decision API lives on the control host; api.regentprotocol.org is the platform (console, enrolment)
+// and answers 404 for /v1/control/decisions. Same default as the Python SDK since 0.3.1.
+const DEFAULT_BASE_URL = 'https://control-api.regentprotocol.org';
 const DEFAULT_GATEWAY_URL = 'https://gw.regentprotocol.org';
 
 /**
