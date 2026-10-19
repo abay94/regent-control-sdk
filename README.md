@@ -47,11 +47,44 @@ error — branch on `d.code`. `ControlError` (transport/auth/5xx) and `ControlNe
 `reasoningSummary`, `task`, `op`, `resourceType`, `accountStatus`, `refundToOriginal`, plus
 any extra keys (passed through verbatim).
 
-## Request signing (optional)
+## The agent's own key (RFC 9421)
+
+`npx @regent-protocol/control-sdk enroll rgnt_inv_…` (or `onboard --name "…"`) generates the
+agent's Ed25519 key, registers it and writes `~/.regent/credentials.json`. A client built
+from that file signs every request with the key — `Signature-Input`, `Signature`,
+`Content-Digest`, tag `regent-agent`, the same bytes the Python SDK emits — and the receipts
+name the agent's key:
+
+```ts
+const control = RegentControl.fromCredentials();          // ~/.regent/credentials.json + agent-key.json
+// or: new RegentControl({ apiKey, agentId, signingKeyFile: '~/.regent/agent-key.json' })
+```
+
+## Gateway tools — `gateway()`
+
+Tools behind the Cloud Gateway (Agentcard, Stripe through the vault, any catalog tool) are
+one call from the same client. The gate decides first; on allow you get the provider's
+response, on a refusal the verdict — a refusal is a value, not a thrown error:
+
+```ts
+const cart = await control.gateway('agentcard_shop', 'buy', {
+  body: { ask: 'one pack of AA batteries from Amazon, cheapest' }, intent: 'batteries for the office',
+});
+const { conversation_id, carts } = cart.data as { conversation_id: string; carts: { hash: string }[] };
+const order = await control.gateway('agentcard_buy', 'buy', {
+  body: { conversation_id, confirm: carts[0].hash }, idempotencyKey: 'batt-1',
+});
+if (order.escalated) { /* a person approves under Approvals; repeat with the same idempotencyKey */ }
+```
+
+When the client holds the agent's key the gateway request is signed with it; the gateway
+verifies the signature and the gate records the agent's key. `gatewayUrl` defaults to
+`https://gw.regentprotocol.org` (or `gateway_url` in `credentials.json`).
+
+## HMAC signing (legacy, optional)
 
 Pass `agentSecret` to HMAC-sign the request body (`X-Agent-Signature`), with the per-agent
-secret `HMAC-SHA256(apiKey, agentId)` (`deriveAgentSecret`) — identical to the Python SDK,
-so an agent moves between them unchanged.
+secret `HMAC-SHA256(apiKey, agentId)` (`deriveAgentSecret`). The agent's own key replaces it.
 
 ## Decision codes
 

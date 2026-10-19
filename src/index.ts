@@ -17,5 +17,9 @@ export type {
   CompleteInput,
   CompleteResult,
   CompleteStatus,
+  GatewayInput,
+  GatewayResponse,
 } from './types.js';
 export { generateAgentKey, kidFor, proofOfPossession, loadOrCreateKey, readKeyFile, writeCredentials } from './agentkey.js';
+export type { AgentKey } from './agentkey.js';
+export { signRequest, contentDigest, authorityOf, signatureBase } from './httpsig.js';

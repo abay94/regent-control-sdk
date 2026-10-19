@@ -1,5 +1,6 @@
 // Public types — the camelCase TS surface over the Decision API wire contract
 // (regent-control-openapi.yaml). The SDK translates to/from snake_case at the edge.
+import type { AgentKey } from './agentkey.js';
 
 export type DecisionCode =
   | 'IDENTITY_NOT_RESOLVED'
@@ -170,4 +171,48 @@ export interface RegentControlConfig {
   timeoutMs?: number;
   /** Max retries on network / 429 / 5xx. Default 2. */
   maxRetries?: number;
+  /** The agent's own Ed25519 key (the file `enroll` / `onboard` wrote): every request is then
+   *  signed with it (RFC 9421) and the receipts name the agent's key. */
+  signingKey?: AgentKey;
+  /** Path of that key file (~/.regent/agent-key.json); read once at construction. */
+  signingKeyFile?: string;
+  /** Cloud Gateway base URL. Default: https://gw.regentprotocol.org */
+  gatewayUrl?: string;
+}
+
+/** One tool call through the Cloud Gateway (`/gw/{tool}/{path}`). */
+export interface GatewayInput {
+  /** HTTP method the tool expects. Default POST. */
+  method?: string;
+  /** JSON body (serialised as sent). */
+  body?: unknown;
+  /** Query string parameters. */
+  query?: Record<string, string>;
+  /** Why the agent does this, in its own words (X-Agent-Intent). */
+  intent?: string;
+  /** The retry handle: an escalated call is repeated with the same key after approval. */
+  idempotencyKey?: string;
+  /** Verified facts the policy keys on (X-Agent-Facts). */
+  facts?: Record<string, unknown>;
+  /** The human's OIDC token the agent acts for (X-Agent-User-Token). */
+  userToken?: string;
+}
+
+/**
+ * What the Cloud Gateway answered for one tool call. On allow, the provider's own response
+ * (`status`, `data` when JSON, `text`); on a refusal, the gate's verdict (`decision`, `code`,
+ * `reason`, `decisionId`) — a refusal is an answer, not an error.
+ */
+export interface GatewayResponse {
+  ok: boolean;
+  status: number;
+  data?: unknown;
+  text: string;
+  decision?: 'allow' | 'deny' | 'escalate';
+  decisionId?: string;
+  code?: string;
+  reason?: string;
+  headers: Record<string, string>;
+  /** `code === 'ESCALATION_REQUIRED'`: a person decides; repeat with the same idempotencyKey. */
+  escalated: boolean;
 }

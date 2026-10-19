@@ -8,13 +8,18 @@
  * @internal
  */
 
+import type { AgentKey } from './agentkey.js';
 import { hmacSha256Hex } from './crypto.js';
 import { ControlError, ControlNetworkError } from './errors.js';
+import { signRequest } from './httpsig.js';
 
 export interface HttpConfig {
   baseUrl: string;
   apiKey: string;
   agentSecret?: string;
+  /** The agent's own Ed25519 key: when set, every request carries an RFC 9421 signature
+   *  (Signature-Input / Signature / Content-Digest, tag "regent-agent") and the HMAC is not used. */
+  signingKey?: AgentKey;
   timeoutMs: number;
   maxRetries: number;
 }
@@ -40,7 +45,9 @@ export class HttpClient {
       Authorization: `Bearer ${this.#cfg.apiKey}`,
       ...extraHeaders,
     };
-    if (this.#cfg.agentSecret) {
+    if (this.#cfg.signingKey) {
+      Object.assign(headers, signRequest(this.#cfg.signingKey, 'POST', url, payload));
+    } else if (this.#cfg.agentSecret) {
       const sig = await hmacSha256Hex(this.#cfg.agentSecret, payload);
       headers['X-Agent-Signature'] = `hmac-sha256=${sig}`;
       headers['X-Agent-Signature-Timestamp'] = String(Math.floor(Date.now() / 1000));
@@ -76,6 +83,46 @@ export class HttpClient {
           continue;
         }
         throw new ControlNetworkError(`Request to ${url} failed`, lastErr);
+      }
+    }
+    throw new ControlNetworkError(`Request to ${url} failed`, lastErr);
+  }
+
+  /**
+   * One request, signed like every other, returned as it is: the gateway answers with the
+   * provider's response on allow and with {decision, code, reason} on a refusal — both are
+   * answers, not transport failures. Retries only transport errors and 5xx.
+   */
+  async raw(method: string, path: string, body = '', extraHeaders?: Record<string, string>): Promise<Response> {
+    const url = `${this.#cfg.baseUrl}${path}`;
+    const headers: Record<string, string> = { Accept: 'application/json', Authorization: `Bearer ${this.#cfg.apiKey}`, ...extraHeaders };
+    if (body) headers['Content-Type'] = 'application/json';
+    if (this.#cfg.signingKey) {
+      Object.assign(headers, signRequest(this.#cfg.signingKey, method, url, body));
+    } else if (this.#cfg.agentSecret && body) {
+      const sig = await hmacSha256Hex(this.#cfg.agentSecret, body);
+      headers['X-Agent-Signature'] = `hmac-sha256=${sig}`;
+      headers['X-Agent-Signature-Timestamp'] = String(Math.floor(Date.now() / 1000));
+    }
+    let lastErr: Error | undefined;
+    for (let attempt = 0; attempt <= this.#cfg.maxRetries; attempt++) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.#cfg.timeoutMs);
+      try {
+        const res = await fetch(url, { method: method.toUpperCase(), headers, body: body || undefined, signal: controller.signal });
+        clearTimeout(timer);
+        if (res.status >= 500 && RETRYABLE.has(res.status) && attempt < this.#cfg.maxRetries) {
+          await sleep(2 ** attempt * 100);
+          continue;
+        }
+        return res;
+      } catch (err) {
+        clearTimeout(timer);
+        lastErr = err instanceof Error ? err : new Error(String(err));
+        if (attempt < this.#cfg.maxRetries) {
+          await sleep(2 ** attempt * 100);
+          continue;
+        }
       }
     }
     throw new ControlNetworkError(`Request to ${url} failed`, lastErr);
