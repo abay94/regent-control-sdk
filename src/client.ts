@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { readKeyFile } from './agentkey.js';
+import { Agentcard } from './agentcard.js';
 import type { AgentKey } from './agentkey.js';
 import { HttpClient } from './http.js';
 import type {
@@ -83,6 +84,11 @@ export class RegentControl {
    * agent's key in the receipt. An escalated call is repeated with the same idempotencyKey
    * after the person approves.
    */
+  /** The owner's card through Agentcard: `shop(ask)` → carts, `buy(conversationId, cartHash, { idempotencyKey })` → order or an escalation. */
+  get agentcard(): Agentcard {
+    return new Agentcard(this);
+  }
+
   async gateway(tool: string, path = '', input: GatewayInput = {}): Promise<GatewayResponse> {
     const method = (input.method ?? 'POST').toUpperCase();
     const body = input.body === undefined ? '' : JSON.stringify(input.body);

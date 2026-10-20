@@ -81,6 +81,20 @@ When the client holds the agent's key the gateway request is signed with it; the
 verifies the signature and the gate records the agent's key. `gatewayUrl` defaults to
 `https://gw.regentprotocol.org` (or `gateway_url` in `credentials.json`).
 
+### The owner's card through Agentcard — `control.agentcard`
+
+The same two tools with their answers read into objects (0.4.0). `shop` never moves money;
+`buy` is decided by the gate on the cart's **ceiling** and the **store** read from Agentcard:
+
+```ts
+const ask = await control.agentcard.shop('one pack of AA batteries from Amazon, cheapest', { intent: 'batteries' });
+const cart = ask.cart;                       // undefined while Agentcard still needs input (ask.reply says what)
+const order = await control.agentcard.buy(ask.conversationId!, cart!.hash, { idempotencyKey: 'batt-1' });
+if (order.escalated) { /* the owner approves under Approvals; repeat with the same idempotencyKey */ }
+else if (order.refused) { /* order.code, order.reason */ }
+else if (order.placed) { console.log(order.orderId, order.approvalUrl); }
+```
+
 ## HMAC signing (legacy, optional)
 
 Pass `agentSecret` to HMAC-sign the request body (`X-Agent-Signature`), with the per-agent
