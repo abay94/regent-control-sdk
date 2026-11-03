@@ -25,3 +25,5 @@ export type { AgentKey } from './agentkey.js';
 export { signRequest, contentDigest, authorityOf, signatureBase } from './httpsig.js';
 export { Agentcard, AGENTCARD_SHOP, AGENTCARD_BUY } from './agentcard.js';
 export type { AgentcardAsk, AgentcardCart, AgentcardItem, AgentcardOrder } from './agentcard.js';
+export { X402, X402_TOOL, resourcePath, x402Result } from './x402.js';
+export type { X402Result, X402FetchInput } from './x402.js';

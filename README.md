@@ -95,6 +95,18 @@ else if (order.refused) { /* order.code, order.reason */ }
 else if (order.placed) { console.log(order.orderId, order.approvalUrl); }
 ```
 
+## Paid web resources (x402) — `control.x402`
+
+```ts
+const r = await control.x402.fetch('https://api.example.com/v1/quote?city=Astana', { intent: 'price a courier', idempotencyKey: 'q-1' });
+if (r.paid) console.log(r.data, r.transaction, r.network, r.decisionId); // paid from the owner's wallet under the agent's USDC budget, verified on chain
+else if (r.escalated) {} // a person decides; repeat with the same idempotencyKey
+else if (r.free) console.log(r.data); // the resource asked for no payment
+else console.log(r.code, r.reason); // refused (MANDATE_NOT_FOUND → ask for a USDC budget)
+```
+
+Docs: https://docs.regentprotocol.org/gateway/x402
+
 ## HMAC signing (legacy, optional)
 
 Pass `agentSecret` to HMAC-sign the request body (`X-Agent-Signature`), with the per-agent

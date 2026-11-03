@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { readKeyFile } from './agentkey.js';
 import { Agentcard } from './agentcard.js';
+import { X402 } from './x402.js';
 import type { AgentKey } from './agentkey.js';
 import { HttpClient } from './http.js';
 import type {
@@ -87,6 +88,11 @@ export class RegentControl {
   /** The owner's card through Agentcard: `shop(ask)` → carts, `buy(conversationId, cartHash, { idempotencyKey })` → order or an escalation. */
   get agentcard(): Agentcard {
     return new Agentcard(this);
+  }
+
+  /** Paid web resources (HTTP 402) through the gateway: `fetch(url)` pays from the organization's wallet under this agent's USDC budget. */
+  get x402(): X402 {
+    return new X402(this);
   }
 
   async gateway(tool: string, path = '', input: GatewayInput = {}): Promise<GatewayResponse> {
