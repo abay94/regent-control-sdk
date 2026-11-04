@@ -21,7 +21,7 @@ export interface X402Result {
   data?: unknown;
   text: string;
   decisionId?: string;
-  /** `verified` (the transfer was read from the chain and the decision closed), `unverified`, `none`; undefined when free or refused. */
+  /** `verified` (the transfer was read from the chain and the decision closed), `pending` (held open until the chain confirms), `unverified`, `none`; undefined when free or refused. */
   settlement?: string;
   transaction?: string;
   network?: string;
